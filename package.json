@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-yuhanbo-editing",
-	"version": "1.1.5",
+	"version": "1.1.6",
 	"description": "Independent Chinese and Markdown editing tools for Obsidian.",
 	"main": "main.js",
 	"type": "module",

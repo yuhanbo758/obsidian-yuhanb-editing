@@ -1,5 +1,7 @@
 # yuhanbo-editing
 
+[中文说明](docs/README.zh-CN.md)
+
 An editing toolkit for Obsidian desktop. It adds heading shortcuts, Markdown formatting, wiki links, Chinese text cleanup, and spreadsheet-to-Markdown paste. It runs on Obsidian 1.14.4 or later on Windows, macOS, and Linux.
 
 ## Installation
@@ -19,136 +21,8 @@ The plugin performs text conversion locally. No account or API key is required. 
 
 Smart paste reads the clipboard when invoked, and the optional paste handler reads only data already attached to the editor's paste event. Copy and calculation commands write results to the clipboard when invoked. The plugin does not directly access files outside the vault. If you choose to embed an HTTP(S) page, Obsidian may contact that site when rendering the resulting iframe. The site can receive ordinary request information such as your IP address.
 
-## 中文说明
+## Development
 
-源码项目名为 `obsidian-yuhanbo-editing`。Obsidian 中的显示名称、插件 ID 和安装目录均为 `yuhanbo-editing`。
+Use Node.js 24. Run `npm ci`, `npm run lint`, `npm test`, and `npm run build`. The build emits `main.js` at the project root. GitHub Actions checks and publishes release assets when plugin code or release configuration changes on `main`. Each release tag matches the manifest version.
 
-yuhanbo-editing 为 Obsidian 桌面版提供标题快捷键、Markdown 格式切换、内部链接、中文整理、表格粘贴和格式刷。最低要求 Obsidian `1.14.4`，最新版本见 [GitHub Releases](https://github.com/yuhanbo758/obsidian-yuhanb-editing/releases)。
-
-本项目根据 [Enhanced-editing 的公开功能说明](https://github.com/obsidian-canzi/Enhanced-editing#readme) 独立实现。没有复制该插件的实现代码、分发文件或界面素材，也不是其 fork。构建配置以 [Obsidian 官方 sample plugin](https://github.com/obsidianmd/obsidian-sample-plugin) 为基线；简繁转换使用 [OpenCC.js](https://github.com/nk2028/opencc-js)。逐项范围与差异见 [功能对照](docs/feature-matrix.md)。
-
-## 安装
-
-1. 从 [最新 GitHub Release](https://github.com/yuhanbo758/obsidian-yuhanb-editing/releases/latest) 下载 `main.js`、`manifest.json` 和 `styles.css`。
-2. 放入笔记库的插件目录。使用默认配置目录时，安装结构为：
-
-   ```text
-   测试库/
-     .obsidian/
-       plugins/
-         yuhanbo-editing/
-           main.js
-           manifest.json
-           styles.css
-   ```
-
-3. 在 Obsidian 的“设置 → 第三方插件”允许加载第三方插件，启用“yuhanbo-editing”。如果使用自定义配置目录，请使用该库实际的配置目录。
-4. 在测试库确认自己的主题、快捷键和其他编辑插件之间没有冲突后，再按相同方式安装到日常库。更新已有安装前，保留原目录及 `data.json` 备份。
-
-Release 包含已构建插件。社区市场收录后，可以在 Obsidian 社区插件界面安装以及检查更新。
-
-## 开始使用
-
-打开 Markdown 笔记的编辑视图。按 `Ctrl+1` 至 `Ctrl+6` 可将当前行设为对应级别的标题；macOS 使用 `Cmd+1` 至 `Cmd+6`。再次执行同级命令恢复正文，执行另一标题级别会更换级别。选中多行后可以批量设置标题，选区恰好结束于下一行行首时不会多改这一行。
-
-所有功能都可以从以下入口找到：
-
-- 命令面板搜索“yuhanbo-editing”。
-- 左侧工具栏的“yuhanbo-editing”图标。
-- 状态栏“yuhanbo-editing”菜单，可按标题、格式、颜色、链接、中文、整理等分组选择。
-- 编辑器右键菜单中的“yuhanbo-editing…”。
-
-默认开启“编辑器内优先使用标题快捷键”：仅在笔记正文编辑器有焦点时，使用 `Ctrl/Cmd+1～6` 切换标题，避免被 Obsidian 的默认标签页切换键抢先处理。设置输入框、阅读视图及其他窗口控件不使用这组编辑器键位。插件不写入或重置 `hotkeys.json`。
-
-如果你希望自行绑定这六个键，请先在 yuhanbo-editing 设置中关闭该优先键组，再到“设置 → 快捷键”搜索“yuhanbo-editing”配置；关闭后由宿主决定键位优先级。
-
-状态栏菜单和插件设置都能打开快捷键配置面板，管理 39 组默认参考键。参考键仅在正文编辑器有焦点时生效。Obsidian 自定义的任何相同键位优先，本插件命令的自定义重绑和清空也会生效。可在面板按需关闭参考键，面板会标注已让出给宿主的按键。
-
-除内链、格式、颜色、智能粘贴和增减空行等 README 键位，现兼容 0.5.2 的高亮 `Alt+G`、光标移动 `Alt+I/J/K/L/O`、同文件夹切换 `Alt+Shift+U/N`、同类内容跳转 `Alt+Shift+J/L`、取消标题 `Ctrl/Cmd+反引号`、同级标题折叠 `Ctrl/Cmd+Alt+Shift+D`、可渲染空行 `Ctrl/Cmd+Alt+Shift+Enter` 和选文计算 `F9`。详见[功能对照](docs/feature-matrix.md)。
-
-## 常用操作
-
-| 目标 | 操作 |
-| --- | --- |
-| 标题 | 当前行按 `Ctrl/Cmd+1～6`；选中多行可批量设置。 |
-| 粗体、斜体、高亮等 | 选择文字后执行对应“切换…”命令，再次执行去除格式。未选择文字时插入符号并把光标放入中间。 |
-| 内部链接 | 选择文字后执行“切换内部链接”，如 `甲、乙` 转为 `[[甲]]、[[乙]]`；在已有链接中放置光标可去除其外层链接。 |
-| 别名链接 | 选择显示文字，执行“转为别名内部链接”，得到 `[[\|显示文字]]`，随后补入目标笔记名。 |
-| 格式刷 | 选中源文字，从状态栏开启“一次格式刷”或“连续格式刷”，再用鼠标划选目标文字自动应用；按 Esc 退出。也保留“复制选文格式”和“应用已复制格式”两步操作。支持复合格式，重复应用不会取消样式。 |
-| 颜色 | 在设置中定义五个文字颜色和五个背景颜色，再使用对应槽位命令；相同颜色再次执行可去除包装。 |
-| 待办状态 | 执行“轮换待办状态”，从普通行创建待办，随后在空白、`x`、`-`、`!`、`?`、`>`、`<`、`+` 之间轮换。 |
-| 表格 | 从 Office 或网页复制表格，执行“智能粘贴表格”；也可启用自动表格粘贴开关。 |
-| 中文整理 | 执行简繁转换、标点转换或“添加中英文间距”。 |
-| 查找选文 | 选择文字后执行“在当前笔记查找选文”，打开宿主的当前文档搜索面板。 |
-| 重命名 | 选中单行文件名文字，执行“用选文重命名当前笔记”，核对确认窗口后点击“重命名”。同名文件不会被覆盖。 |
-
-格式命令支持粗体、斜体、行内代码、代码块、删除线、高亮、注释、下划线、上下标、挖空以及四种中文括号。下划线、上下标与颜色使用 HTML 标记；挖空命令插入 `{{c1::文字}}`，不附带记忆卡片或练习系统。
-
-“智能补全或跳过符号”用于无选区的光标位置。它可补全中文括号及常见 Markdown 成对符号，已有右符号时移动光标越过符号。单独输入 `dv`、`qy`、`mm`、`js`、`py` 等缩写后执行命令，可生成对应代码块。
-
-Callout 支持英文类型与中文名称，例如 `note`、`笔记`、`摘要`、`提示`、`常见问题`，以及 `summary`、`tldr`、`hint`、`done`、`faq` 等原生别名。可带对齐方式（左/中/右、l/c/r、left/center/right）、折叠符号（展开 `+`、折叠 `-`）和自定义标题。例如 `笔记 右+`、`摘要l-`、`提示 中-`、`info c`、`warning - 提醒`。对齐通过插件专属 Callout 元数据与随包 CSS 实现，不需要额外主题或参考插件；禁用插件后原生 Callout 仍可显示，对齐样式不再生效。
-
-## 作用范围和正文保护
-
-标题、待办、代码块和行尾处理等行命令以当前行或选中的整行为单位。中文与正文整理类命令有选文时处理选文，无选文时处理全文；“每行末尾追加两个空格”和“去除每行末尾空格”也支持无选文处理全文。普通格式、内链和颜色命令以当前选区为单位。
-
-正文整理会保护 YAML frontmatter、围栏代码、缩进代码及可识别的行内代码、链接、网址和 HTML 结构。标题等行操作会跳过受保护代码行；格式、颜色和内链等操作选区触及 YAML 或代码块时会取消并提示。只选择行内代码的部分正文会丢失分隔符上下文，因此也会取消；需要修改代码格式时，请选择完整行内代码，或使用“切换代码块”并包含完整首尾围栏。
-
-这些规则采用保守处理。插件不把任意 Markdown 都视为可直接替换的普通字符串；复杂语法、嵌套结构或局部选区无法安全判断时，可能保留原文或提示重新选择。批量文字修改通过编辑器事务提交，便于使用 Obsidian 的撤销操作。
-
-## 设置
-
-在“设置 → yuhanbo-editing”，或状态栏菜单的“编辑设置”中调整：
-
-- **回车额外插入空行**：默认关闭。开启后，仅在普通正文行末、无选区且非输入法组合输入时，按回车插入一个空白行；跳过列表、引用、标题、表格及代码。
-- **编辑器内优先使用标题快捷键**：默认开启，仅在正文编辑器使用 `Ctrl/Cmd+1～6`；关闭后恢复宿主快捷键处理。输入法组合、只读编辑器及长按重复事件不会重复转换标题。
-- **自动将粘贴表格转为 Markdown**：默认关闭。开启后，只有编辑器收到包含 HTML 表格或制表符表格的粘贴事件时才转换。
-- **自动识别标题的级别**：默认二级，可选一级至六级。识别短行、避免将句末有标点或数字的行转换为标题。
-- **颜色槽位**：各五个文字颜色与背景颜色，可通过颜色选择器调整或恢复默认值。
-
-插件使用 Obsidian 标准设置存储，并只读当前库的快捷键配置来避让自定义键位。
-
-## 表格与导航功能的边界
-
-表格支持 HTML 单表和制表符文本。第一行作为表头，单元格中的管道和换行会转换为 Markdown 可用的形式。Markdown 表格不能表达合并单元格：原单元格文字放在合并范围左上角，其余位置使用空单元格占位。嵌套表格、同时包含多个表格、超出范围或相互重叠的合并格会被拒绝，避免悄悄丢失结构。
-
-“将已知笔记名批量转换为内链”只匹配库内唯一、完整且不少于两个字符的笔记名，优先较长名称，跳过已有链接、代码和网址。同名笔记、别名、模糊猜测和外部知识推断不在此功能范围内。
-
-视频时间跳转识别当前行的 `分:秒` 或 `时:分:秒`。当前行有内部笔记链接时，只处理这些明确链接的笔记；唯一目标尚未打开时，在侧边阅读视图打开并等待视频渲染（最长 3 秒）。没有笔记链接时使用当前笔记。找到唯一原生 HTML5 视频后定位并播放；自动播放被浏览器拒绝时保留定位并提示手动播放。等待期间原笔记或选区变化会取消操作。不会猜测无关播放器或控制 iframe 内视频；多个播放器、多个目标无法判定或时间超过已知长度时会提示。
-
-## 隐私与联网
-
-文本处理在本地进行。简繁转换词典随 `main.js` 内置，运行时不下载词典，不需要账号、API Key、付费服务或网络连接。插件不包含遥测、广告、后台上传、动态下载代码、自更新或依赖安装。插件不直接读写库外文件；本地路径转换只生成或还原文本链接，不打开目标文件。
-
-剪贴板在用户执行“智能粘贴表格”时读取，在复制无格式文本、提取标注、复制相对路径或复制算术结果时写入。启用自动表格粘贴后，插件读取当前粘贴事件附带的数据。读取失败或等待期间切换笔记、移动选区、修改文字或卸载插件，会取消该次异步粘贴。
-
-“嵌入选中的网页网址”会把用户选择的 HTTP/HTTPS 地址写为受限 iframe。当 Obsidian 渲染这段嵌入内容时，浏览器会访问该网址，目标网站可能接收常规访问数据；此行为仅由用户主动插入并渲染的网页触发。网页可能因为站点的嵌入限制而无法显示。插件不绕过网站的跨域、认证或安全限制。
-
-## 开发与验证
-
-使用支持 Node.js 依赖安装的开发环境，在项目根目录运行：
-
-```powershell
-npm ci
-npm run typecheck
-npm run lint
-npm test
-npm run build
-npm run package
-```
-
-Windows 可用 `npm run package` 在 `dist` 生成安装 ZIP。生产构建将中文转换词典及许可内置到 `main.js`。
-
-主分支的插件源码、依赖和发布配置变更会触发 GitHub Actions。若目标版本已有标签，流程递增补丁版本，构建并发布同版本资产。要指定下一次次版本，可执行 `npm version minor --no-git-tag-version`，然后提交并推送版本文件。发布完成后以 `git pull --ff-only` 同步 Actions 的版本提交。
-
-插件面向 Windows、macOS 和 Linux 桌面版。自动化回归覆盖编辑转换、键位和设置逻辑。
-
-## 许可与参考资料
-
-本项目采用 MIT 许可，见 `LICENSE`；依赖及构建基线的署名与许可证见第三方许可说明。功能参考不表示与参考项目维护者存在合作或背书关系。
-
-- [Obsidian 官方开发文档](https://docs.obsidian.md/Home)
-- [Obsidian Plugin API](https://github.com/obsidianmd/obsidian-api)
-- [Obsidian 官方插件示例](https://github.com/obsidianmd/obsidian-sample-plugin)
-- [OpenCC.js 官方仓库](https://github.com/nk2028/opencc-js)
-- [官方 CLI 文档](https://help.obsidian.md/cli)
+This project is available under the [MIT license](LICENSE). The bundled OpenCC conversion code and dictionaries are documented in [Third-party notices](THIRD_PARTY_NOTICES.md).
