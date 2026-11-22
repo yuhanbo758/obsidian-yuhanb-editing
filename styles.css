@@ -1,0 +1,8 @@
+.yuhanbo-editing-status { cursor: pointer; color: var(--text-muted); }
+.yuhanbo-editing-status:hover { color: var(--text-accent); }
+.yuhanbo-editing-status.yuhanbo-editing-brush-active { color: var(--text-accent); font-weight: var(--font-semibold); }
+.callout[data-callout-metadata="yuhanbo-left"] > .callout-content { text-align: left; }
+.callout[data-callout-metadata="yuhanbo-center"] > .callout-content { text-align: center; }
+.callout[data-callout-metadata="yuhanbo-right"] > .callout-content { text-align: right; }
+.callout[data-callout-metadata="yuhanbo-center"] > .callout-title { justify-content: center; }
+.callout[data-callout-metadata="yuhanbo-right"] > .callout-title { justify-content: flex-end; }

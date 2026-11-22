@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.runtime/
+*.log
+/docs/evidence/
+/docs/validation.md
+/scripts/verify-obsidian.js
+.obsidian/
+data.json
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx

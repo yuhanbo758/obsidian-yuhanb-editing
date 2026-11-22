@@ -1,0 +1,105 @@
+name: 发布 Obsidian 插件
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'licenses/**'
+      - 'LICENSE'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'styles.css'
+      - 'manifest.json'
+      - 'versions.json'
+      - 'package*.json'
+      - 'esbuild.config.mjs'
+      - 'eslint.config.mts'
+      - 'tsconfig.json'
+      - 'scripts/prepare-release.mjs'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: obsidian-release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: 签出主分支
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.15.0'
+          cache: npm
+
+      - name: 安装锁定依赖
+        run: npm ci
+
+      - name: 同步发布版本
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/prepare-release.mjs --sync-manifest
+          version=$(node -p "require('./manifest.json').version")
+          while git show-ref --tags --verify --quiet "refs/tags/$version"; do
+            node scripts/prepare-release.mjs --bump-patch
+            version=$(node -p "require('./manifest.json').version")
+          done
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: 测试并构建
+        run: |
+          npm run typecheck
+          npm run lint
+          npm test
+          npm run build
+          node --check main.js
+          test -s main.js && test -s manifest.json && test -s styles.css
+          git diff --check
+
+      - name: 推送版本和构建产物
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add manifest.json package.json package-lock.json versions.json main.js
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: prepare release $RELEASE_VERSION"
+          fi
+          git tag "$RELEASE_VERSION"
+          git push --atomic origin HEAD:refs/heads/main "refs/tags/$RELEASE_VERSION"
+
+      - name: 签发构建证明
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: 发布 GitHub Release
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$RELEASE_VERSION" --verify-tag --title "$RELEASE_VERSION" --generate-notes \
+            --notes "Obsidian 桌面插件 $RELEASE_VERSION。此版本已通过类型检查、lint 和回归测试。" \
+            main.js manifest.json styles.css
