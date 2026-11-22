@@ -1644,7 +1644,7 @@ function calculateArithmetic(text) {
 // src/text-tools.ts
 function splitLines(text) {
   const matches = text.match(/[^\r\n]*(?:\r\n|\n|\r|$)/g) ?? [];
-  if (matches.at(-1) === "") matches.pop();
+  if (matches[matches.length - 1] === "") matches.pop();
   let frontmatter = false;
   let fence = null;
   let htmlBlock = "";
@@ -1987,7 +1987,7 @@ var EditingPlugin = class extends import_obsidian3.Plugin {
     this.settings = parseSettings(await this.loadData());
     await this.refreshCustomHotkeys();
     this.defineTools();
-    for (const tool of this.tools) this.addCommand({ id: tool.id, name: tool.name, hotkeys: tool.hotkeys, editorCallback: (editor) => {
+    for (const tool of this.tools) this.addCommand({ id: tool.id, name: tool.name, editorCallback: (editor) => {
       this.execute(tool, editor);
     } });
     this.addCommand({ id: "open-menu", name: "\u6253\u5F00\u7F16\u8F91\u5DE5\u5177\u83DC\u5355", callback: () => {
@@ -2114,12 +2114,12 @@ var EditingPlugin = class extends import_obsidian3.Plugin {
     return error instanceof Error ? error.message : "\u7F16\u8F91\u64CD\u4F5C\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002";
   }
   defineTools() {
-    const add = (id, name, group, run, hotkeys) => {
-      this.tools.push({ id, name, group, run, hotkeys });
+    const add = (id, name, group, run) => {
+      this.tools.push({ id, name, group, run });
     };
     for (let level = 1; level <= 6; level++) add(`heading-${level}`, `\u5207\u6362 ${level} \u7EA7\u6807\u9898`, "\u6807\u9898", (editor) => {
       transformLines(editor, (line) => toggleHeading(line, level));
-    }, [{ modifiers: ["Mod"], key: String(level) }]);
+    });
     add("heading-clear", "\u53D6\u6D88\u6807\u9898", "\u6807\u9898", (editor) => {
       transformLines(editor, clearHeading);
     });

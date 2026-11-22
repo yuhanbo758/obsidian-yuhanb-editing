@@ -8,6 +8,4 @@ export default defineConfig(
     tsconfigRootDir: import.meta.dirname, extraFileExtensions: ['.json'],
   } } },
   ...obsidianmd.configs.recommended,
-  // 用户明确要求六个标题快捷键；其余命令仍不设默认值，测试核对实际清单。
-  { files: ['src/main.ts'], rules: { 'obsidianmd/commands/no-default-hotkeys': 'off' } },
 );

@@ -7,7 +7,7 @@ interface TextLine {
 /** 先标记整块，再处理正文，防止批量编辑误改 YAML、围栏代码和缩进代码。 */
 function splitLines(text: string): TextLine[] {
 	const matches = text.match(/[^\r\n]*(?:\r\n|\n|\r|$)/g) ?? [];
-	if (matches.at(-1) === "") matches.pop();
+	if (matches[matches.length - 1] === "") matches.pop();
 	let frontmatter = false;
 	let fence: { char: string; length: number } | null = null;
 	let htmlBlock = "";

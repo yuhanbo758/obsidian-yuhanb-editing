@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, MarkdownView, Menu, Modal, Notice, Platform, Plugin, Setting, TFile, normalizePath, type Editor, type Hotkey } from 'obsidian';
+import { FuzzySuggestModal, MarkdownView, Menu, Modal, Notice, Platform, Plugin, Setting, TFile, normalizePath, type Editor } from 'obsidian';
 import OpenCC from 'opencc-js';
 import { HeadingKeyScope } from './heading-keys';
 import { applyEdits, inlineCodeRanges, protectedLines, selectedRanges, snapshot, transformEditor, transformLines, unchanged, type TextEdit } from './editor-tools';
@@ -10,7 +10,7 @@ import { parseCustomHotkeys } from './custom-hotkeys';
 import { calculateArithmetic, clearHeading, foldHeadingLevel, jumpToSimilar } from './legacy-editing';
 import { adjustBlankLines, autoHeadings, chineseSpacing, convertPunctuation, extractAnnotations, fixMarkdown, htmlTableToMarkdown, joinSoftLines, parseTimestamp, stripSpaces, transformProse, tsvToMarkdown } from './text-tools';
 
-interface Tool { id: string; name: string; group: string; run: (editor: Editor) => void | Promise<void>; hotkeys?: Hotkey[] }
+interface Tool { id: string; name: string; group: string; run: (editor: Editor) => void | Promise<void> }
 
 class ToolPicker extends FuzzySuggestModal<Tool> {
   constructor(private plugin: EditingPlugin, private tools: Tool[]) { super(plugin.app); this.setPlaceholder('搜索编辑功能…'); }
@@ -36,8 +36,8 @@ export default class EditingPlugin extends Plugin {
     this.settings = parseSettings(await this.loadData());
     await this.refreshCustomHotkeys();
     this.defineTools();
-    // 用户明确要求标题默认 Ctrl/Cmd+1～6；仅此六条声明默认值，沿用宿主的自定义快捷键优先规则。
-    for (const tool of this.tools) this.addCommand({ id: tool.id, name: tool.name, hotkeys: tool.hotkeys, editorCallback: editor => { this.execute(tool, editor); } });
+    // 快捷键只在正文作用域生效；可从命令面板执行或在宿主中手动绑定这些命令。
+    for (const tool of this.tools) this.addCommand({ id: tool.id, name: tool.name, editorCallback: editor => { this.execute(tool, editor); } });
     this.addCommand({ id: 'open-menu', name: '打开编辑工具菜单', callback: () => { new ToolPicker(this, this.tools).open(); } });
     this.addCommand({ id: 'open-settings', name: '打开编辑设置', callback: () => { this.openSettings(); } });
     this.addCommand({ id: 'hotkey-guide', name: '查看快捷键配置', callback: () => { this.openHotkeys(); } });
@@ -121,8 +121,8 @@ export default class EditingPlugin extends Plugin {
   private errorText(error: unknown): string { return error instanceof Error ? error.message : '编辑操作失败，请重试。'; }
 
   private defineTools(): void {
-    const add = (id: string, name: string, group: string, run: Tool['run'], hotkeys?: Hotkey[]): void => { this.tools.push({ id, name, group, run, hotkeys }); };
-    for (let level = 1; level <= 6; level++) add(`heading-${level}`, `切换 ${level} 级标题`, '标题', editor => { transformLines(editor, line => toggleHeading(line, level)); }, [{ modifiers: ['Mod'], key: String(level) }]);
+    const add = (id: string, name: string, group: string, run: Tool['run']): void => { this.tools.push({ id, name, group, run }); };
+    for (let level = 1; level <= 6; level++) add(`heading-${level}`, `切换 ${level} 级标题`, '标题', editor => { transformLines(editor, line => toggleHeading(line, level)); });
     add('heading-clear', '取消标题', '标题', editor => { transformLines(editor, clearHeading); });
     add('fold-heading-level', '折叠当前同级标题（先展开现有折叠）', '标题', foldHeadingLevel);
     const wrappers: Array<[string, string, string, string]> = [

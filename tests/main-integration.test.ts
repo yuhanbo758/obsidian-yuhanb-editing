@@ -154,11 +154,11 @@ test('等待剪贴板期间卸载插件会取消写入', async context => {
   assert.equal(fixture.editor.value, '原笔记');
 });
 
-test('只有六个标题命令声明默认快捷键，加载不重写用户的自定义绑定', async context => {
+test('标题命令保持可配置，加载不注册全局默认快捷键或重写自定义绑定', async context => {
   const fixture = await createFixture(); context.after(() => fixture.close());
-  const commands = fixture.plugin.commands.filter(command => command.hotkeys?.length);
+  const commands = fixture.plugin.commands.filter(command => /^heading-[1-6]$/.test(command.id));
   assert.deepEqual(commands.map(command => command.id), ['heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6']);
-  for (let index = 0; index < 6; index++) assert.deepEqual(commands[index]!.hotkeys, [{ modifiers: ['Mod'], key: String(index + 1) }]);
+  assert.ok(fixture.plugin.commands.every(command => !command.hotkeys?.length));
   assert.deepEqual(fixture.app.hotkeyManager.customKeys, fixture.customHotkeys);
 });
 
